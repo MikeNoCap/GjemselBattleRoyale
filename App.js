@@ -3,9 +3,13 @@ import React, { useEffect, useState } from 'react';
 // Import required components
 import { SafeAreaView, StyleSheet, View, Text, Image } from 'react-native';
 // Import Map and Marker
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Circle, Marker } from 'react-native-maps';
 
 import * as Location from 'expo-location';
+import * as TaskManager from 'expo-task-manager';
+
+
+
 
 
 const pfp = require("./pfp.jpg")
@@ -13,7 +17,9 @@ const pfp = require("./pfp.jpg")
 
 
 async function a() {
-  let { status } = await Location.requestForegroundPermissionsAsync();
+  var { status } = await Location.requestForegroundPermissionsAsync();
+  console.log(status)
+  var { status } = await Location.requestBackgroundPermissionsAsync();
   console.log(status)
 }
 
@@ -26,12 +32,15 @@ const App = () => {
   const [heading, setHeading] = useState(0)
   useEffect(() => {
     async function getLocation() {
-      let location = await Location.getCurrentPositionAsync({})
-      let heading = await Location.getHeadingAsync({})
-      console.log(heading)
-      console.log(location)
-      setHeading(heading)
-      setLocation(location)
+      TaskManager.defineTask("locationTask", ({ data: { locations }, error }) => {
+        if (error) {
+          // check `error.message` for more details.
+          return;
+        }
+        console.log('Received new locations', locations);
+        setLocation(locations[0])
+       });
+       await Location.startLocationUpdatesAsync("locationTask")
     }
     getLocation()
 
@@ -41,11 +50,34 @@ const App = () => {
       <View style={styles.container}>
         <MapView
           style={styles.mapStyle}
-          mapType="satellite"
           customMapStyle={mapStyle}
+
+          provider="google"
+          showsCompass={false}
+          toolbarEnabled={false}
+          region={{
+            latitude: 59.78477198225559,
+            longitude: 10.454697800613803,
+            latitudeDelta: 0.06,
+            longitudeDelta: 0.06
+          }}
+          minZoomLevel={13}
+          mapType="satellite"
         >
+          <Circle
+          center={{
+            latitude: 59.78477198225559,
+            longitude: 10.454697800613803
+
+          }}
+          radius={1400}
+          strokeWidth={4}
+          strokeColor={"white"}></Circle>
+        
           {location != null &&
             <Marker
+              flat={true}
+              rotation={0}
               pinColor={"gold"}
               coordinate={
                 {
@@ -57,15 +89,17 @@ const App = () => {
                 style={
                   {
                     backgroundColor: "red",
-                    height: 60,
-                    width: 60,
-                    borderRadius: 30,
+                    height: 40,
+                    width: 40,
+                    borderRadius: 20,
                     display: "flex",
                     justifyContent: "center",
-                    alignItems: "center"
+                    alignItems: "center",
+                    margin: 0,
+                    padding: 0
                   }}>
-                <View></View>
-                <Image style={{ height: 50, width: 50, borderRadius: 25 }} source={pfp}></Image>
+                <Image style={{ height: 35, width: 35, borderRadius: 17.5 }} source={pfp}></Image>
+
               </View>
             </Marker>}
 

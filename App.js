@@ -1,12 +1,37 @@
 // Import React
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 // Import required components
-import { SafeAreaView, StyleSheet, View, Text, Image } from 'react-native';
+import { SafeAreaView, StyleSheet, View, Text, Image, Animated } from 'react-native';
+
+
+
+
 // Import Map and Marker
-import MapView, { Circle, Marker } from 'react-native-maps';
+import MapView, { Circle as CircleMap, Marker, Polygon } from 'react-native-maps';
+
+import StormCircle from './components/StormCircle';
+const AnimatedStormCircle = Animated.createAnimatedComponent(StormCircle)
+import NewCircle from './components/NewCircle';
+
 
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
+
+
+
+
+const maps = [
+  {
+    name: "Heggedal",
+    center: {
+      latitude: 59.78477198225559,
+      longitude: 10.454697800613803
+    },
+    radius: 1400
+  }
+]
+const map = maps[0]
+
 
 
 
@@ -16,20 +41,42 @@ const pfp = require("./pfp.jpg")
 
 
 
-async function a() {
+
+async function requestPermissions() {
   var { status } = await Location.requestForegroundPermissionsAsync();
   console.log(status)
   var { status } = await Location.requestBackgroundPermissionsAsync();
   console.log(status)
 }
 
-a()
+requestPermissions()
 
 
 
 const App = () => {
   const [location, setLocation] = useState(null)
   const [heading, setHeading] = useState(0)
+
+
+
+  const radiusAnimationRef = useRef(new Animated.Value(1400)).current
+  const centerAnimationRef = useRef(new Animated.ValueXY({ x: map.center.longitude, y: map.center.latitude })).current
+
+  useEffect(() => {
+      Animated.timing(radiusAnimationRef, {
+        toValue: 1000,
+        duration: 10000*6+2000,
+        useNativeDriver: false
+      }).start()
+      Animated.timing(centerAnimationRef, {
+        toValue: { x: 10.456697800613803, y: 59.78777198225559, },
+        duration: 10000*6,
+        useNativeDriver: false
+      }).start()
+
+
+
+  }, [radiusAnimationRef])
   useEffect(() => {
     async function getLocation() {
       TaskManager.defineTask("locationTask", ({ data: { locations }, error }) => {
@@ -39,8 +86,12 @@ const App = () => {
         }
         console.log('Received new locations', locations);
         setLocation(locations[0])
-       });
-       await Location.startLocationUpdatesAsync("locationTask")
+      });
+      await Location.startLocationUpdatesAsync("locationTask", {
+        distanceInterval: 0,
+        timeInterval: 5000,
+        accuracy: Location.Accuracy.BestForNavigation
+      })
     }
     getLocation()
 
@@ -48,7 +99,7 @@ const App = () => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.container}>
-        <MapView
+        <MapView.Animated
           style={styles.mapStyle}
           customMapStyle={mapStyle}
 
@@ -56,24 +107,27 @@ const App = () => {
           showsCompass={false}
           toolbarEnabled={false}
           region={{
-            latitude: 59.78477198225559,
-            longitude: 10.454697800613803,
+            latitude: maps[0].center.latitude,
+            longitude: maps[0].center.longitude,
             latitudeDelta: 0.06,
             longitudeDelta: 0.06
           }}
-          minZoomLevel={13}
           mapType="satellite"
+          minZoomLevel={13}
         >
-          <Circle
-          center={{
-            latitude: 59.78477198225559,
-            longitude: 10.454697800613803
+          <AnimatedStormCircle
+            x={centerAnimationRef.x}
+            y={centerAnimationRef.y}
+            radius={radiusAnimationRef} />
 
-          }}
-          radius={1400}
-          strokeWidth={4}
-          strokeColor={"white"}></Circle>
-        
+          <NewCircle circle={{
+            center: {
+              latitude: 59.78777198225559,
+              longitude: 10.456697800613803
+            }, radius: 1000
+          }} />
+
+
           {location != null &&
             <Marker
               flat={true}
@@ -103,7 +157,7 @@ const App = () => {
               </View>
             </Marker>}
 
-        </MapView>
+        </MapView.Animated>
       </View>
     </SafeAreaView>
   );

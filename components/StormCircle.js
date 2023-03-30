@@ -63,7 +63,6 @@ class StormCircle extends React.Component {
             longitude: this.props.x,
             latitude: this.props.y
         }
-        console.log(center)
         return (
             <>
                 <Circle

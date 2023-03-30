@@ -65,12 +65,12 @@ const App = () => {
   useEffect(() => {
       Animated.timing(radiusAnimationRef, {
         toValue: 1000,
-        duration: 10000*6+2000,
+        duration: 10000,
         useNativeDriver: false
       }).start()
       Animated.timing(centerAnimationRef, {
         toValue: { x: 10.456697800613803, y: 59.78777198225559, },
-        duration: 10000*6,
+        duration: 10000,
         useNativeDriver: false
       }).start()
 
@@ -88,6 +88,7 @@ const App = () => {
         setLocation(locations[0])
       });
       await Location.startLocationUpdatesAsync("locationTask", {
+        enableHighAccuracy: true,
         distanceInterval: 0,
         timeInterval: 5000,
         accuracy: Location.Accuracy.BestForNavigation

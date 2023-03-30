@@ -15,6 +15,15 @@
       "**/*"
     ],
     "ios": {
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "location",
+          "fetch"
+        ],
+        "NSLocationWhenInUseUsageDescription": "text",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "text",
+        "NSLocationAlwaysUsageDescription": "text"
+      },
       "supportsTablet": true,
       "bundleIdentifier": "com.miklath.GjemselRoyale"
     },
@@ -32,6 +41,14 @@
       "eas": {
         "projectId": "89e7b2c8-77b6-4682-9b97-40b4d1a30b3a"
       }
-    }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
+      ]
+    ]
   }
 }
